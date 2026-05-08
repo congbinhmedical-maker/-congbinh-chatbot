@@ -1,5 +1,6 @@
 const { callOpenAI } = require('../services/openai');
-const { sendMessage, getUserName } = require('../services/facebook');
+const { sendMessage, sendImage, getUserName } = require('../services/facebook');
+const { extractImageTag, getImageUrl } = require('../services/productImages');
 const conv = require('../services/conversation');
 
 async function handleMessage(event) {
@@ -33,12 +34,25 @@ async function handleMessage(event) {
   // Gọi AI tạo câu trả lời
   const reply = await callOpenAI(session.history, session.postContext, session.phoneCollected, session.name);
 
-  // Lưu câu trả lời vào lịch sử
-  session.history.push({ role: 'assistant', content: reply });
+  // Tách tag ảnh nếu AI có gắn [IMG:key]
+  const { cleanText, imageKey } = extractImageTag(reply);
+
+  // Lưu câu trả lời vào lịch sử (không có tag)
+  session.history.push({ role: 'assistant', content: cleanText });
   conv.update(senderId, session);
 
-  // Gửi trả lời
-  await sendMessage(senderId, reply);
+  // Gửi text trước
+  await sendMessage(senderId, cleanText);
+
+  // Gửi ảnh kèm nếu có
+  if (imageKey) {
+    const imgUrl = getImageUrl(imageKey);
+    if (imgUrl) {
+      await sendImage(senderId, imgUrl);
+      console.log(`🖼️ Đã gửi ảnh sản phẩm: ${imageKey}`);
+    }
+  }
+
   console.log(`✅ Đã trả lời ${senderId}`);
 }
 

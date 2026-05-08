@@ -47,4 +47,21 @@ async function getUserName(userId) {
   }
 }
 
-module.exports = { sendMessage, replyToComment, getPostContent, getUserName };
+async function sendImage(recipientId, imageUrl) {
+  try {
+    await axios.post(`${API}/me/messages`, {
+      recipient: { id: recipientId },
+      message: {
+        attachment: {
+          type: 'image',
+          payload: { url: imageUrl, is_reusable: true }
+        }
+      },
+      messaging_type: 'RESPONSE'
+    }, { params: { access_token: TOKEN } });
+  } catch (err) {
+    console.error('❌ Gửi ảnh lỗi:', err.response?.data?.error?.message || err.message);
+  }
+}
+
+module.exports = { sendMessage, sendImage, replyToComment, getPostContent, getUserName };
