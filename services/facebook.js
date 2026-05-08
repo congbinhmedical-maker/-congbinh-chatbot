@@ -36,4 +36,15 @@ async function getPostContent(postId) {
   }
 }
 
-module.exports = { sendMessage, replyToComment, getPostContent };
+async function getUserName(userId) {
+  try {
+    const res = await axios.get(`${API}/${userId}`, {
+      params: { fields: 'name', access_token: TOKEN }
+    });
+    return res.data.name || '';
+  } catch {
+    return '';
+  }
+}
+
+module.exports = { sendMessage, replyToComment, getPostContent, getUserName };

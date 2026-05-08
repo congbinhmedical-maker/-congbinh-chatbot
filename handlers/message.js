@@ -1,5 +1,5 @@
 const { callOpenAI } = require('../services/openai');
-const { sendMessage } = require('../services/facebook');
+const { sendMessage, getUserName } = require('../services/facebook');
 const conv = require('../services/conversation');
 
 async function handleMessage(event) {
@@ -10,6 +10,11 @@ async function handleMessage(event) {
   console.log(`📨 Tin nhắn từ ${senderId}: ${text}`);
 
   const session = conv.get(senderId);
+
+  // Lấy họ tên đầy đủ nếu chưa có
+  if (!session.name) {
+    session.name = await getUserName(senderId);
+  }
 
   // Kiểm tra có số điện thoại không
   const phone = conv.extractPhone(text);
@@ -26,7 +31,7 @@ async function handleMessage(event) {
   session.history.push({ role: 'user', content: text });
 
   // Gọi AI tạo câu trả lời
-  const reply = await callOpenAI(session.history, session.postContext, session.phoneCollected);
+  const reply = await callOpenAI(session.history, session.postContext, session.phoneCollected, session.name);
 
   // Lưu câu trả lời vào lịch sử
   session.history.push({ role: 'assistant', content: reply });

@@ -62,12 +62,18 @@ XỬ LÝ TỪ CHỐI:
 
 MỤC TIÊU: Lấy được số điện thoại để Lâm gọi tư vấn và chốt đơn trực tiếp.`;
 
-async function callOpenAI(history, postContext, phoneCollected) {
+async function callOpenAI(history, postContext, phoneCollected, customerName) {
   let systemPrompt = SYSTEM_PROMPT;
+
+  if (customerName) {
+    systemPrompt += `\n\nTÊN KHÁCH HÀNG: "${customerName}" — Gọi đúng họ tên đầy đủ này khi chào lần đầu. Sau đó có thể gọi tên thôi cho thân mật.`;
+  }
 
   if (postContext) {
     const topic = POST_TOPICS[postContext] || 'thiết bị nha khoa';
-    systemPrompt += `\n\nBỐI CẢNH BÀI VIẾT: Khách vừa xem/bình luận bài về "${topic}". Dựa vào đó để mở đầu tự nhiên.`;
+    systemPrompt += `\n\nBỐI CẢNH BÀI VIẾT: Khách vừa xem/bình luận bài về "${topic}". Dựa vào đó để mở đầu tự nhiên, hỏi xem họ đang cần tìm hiểu thêm về vấn đề gì không.`;
+  } else {
+    systemPrompt += `\n\nKHÁCH NHẮN TIN TRỰC TIẾP (chưa rõ nhu cầu): Chào thân mật bằng họ tên đầy đủ, hỏi nhẹ nhàng xem không biết anh/chị đang cần tìm hiểu sản phẩm nào để em có thể hỗ trợ tư vấn tốt nhất. Đừng giới thiệu sản phẩm ngay — hỏi nhu cầu trước.`;
   }
 
   if (phoneCollected) {
