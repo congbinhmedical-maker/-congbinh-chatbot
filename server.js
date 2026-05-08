@@ -2,6 +2,9 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const express = require('express');
 const { handleMessage } = require('./handlers/message');
 const { handleComment } = require('./handlers/comment');
+const { setHumanTakeover } = require('./services/conversation');
+
+const BOT_APP_ID = process.env.FACEBOOK_APP_ID || '1210967194135072';
 
 const app = express();
 app.use(express.json());
@@ -35,7 +38,19 @@ app.post('/webhook', async (req, res) => {
     // Tin nhắn Messenger
     if (entry.messaging) {
       for (const event of entry.messaging) {
-        if (event.message && !event.message.is_echo) {
+        // Echo = Page gửi đi — phân biệt người thật vs bot
+        if (event.message?.is_echo) {
+          const sentByBot = String(event.message.app_id) === String(BOT_APP_ID);
+          const recipientId = event.recipient?.id;
+          if (!sentByBot && recipientId) {
+            // Người thật đang trả lời → bật human takeover
+            setHumanTakeover(recipientId, true);
+            console.log(`👤 Người thật đang trực — tắt bot cho ${recipientId}`);
+          }
+          continue;
+        }
+        // Tin nhắn từ khách
+        if (event.message) {
           await handleMessage(event).catch(e => console.error('Message error:', e.message));
         }
       }

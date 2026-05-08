@@ -2,6 +2,7 @@ const { callOpenAI } = require('../services/openai');
 const { sendMessage, sendImage, getUserName } = require('../services/facebook');
 const { extractImageTag, getImageUrl } = require('../services/productImages');
 const conv = require('../services/conversation');
+const { isHumanTakeover } = require('../services/conversation');
 
 async function handleMessage(event) {
   const senderId = event.sender.id;
@@ -9,6 +10,12 @@ async function handleMessage(event) {
   if (!text) return;
 
   console.log(`📨 Tin nhắn từ ${senderId}: ${text}`);
+
+  // Nếu đang có người thật trực → bot không trả lời
+  if (isHumanTakeover(senderId)) {
+    console.log(`👤 Human takeover đang bật — bỏ qua tin nhắn từ ${senderId}`);
+    return;
+  }
 
   const session = conv.get(senderId);
 

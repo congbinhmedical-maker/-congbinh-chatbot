@@ -24,11 +24,40 @@ function get(userId) {
       postContext: null,
       phoneCollected: false,
       name: null,
+      humanTakeover: false,
+      humanTakeoverAt: null,
       createdAt: new Date().toISOString()
     };
     save(all);
   }
   return all[userId];
+}
+
+// Bật human takeover — bot im lặng
+function setHumanTakeover(userId, active) {
+  const all = load();
+  if (!all[userId]) get(userId);
+  const data = load();
+  data[userId].humanTakeover = active;
+  data[userId].humanTakeoverAt = active ? new Date().toISOString() : null;
+  save(data);
+}
+
+// Kiểm tra có đang trong chế độ human takeover không
+// Tự động reset sau 8 tiếng nếu không có người trực
+function isHumanTakeover(userId) {
+  const all = load();
+  const session = all[userId];
+  if (!session || !session.humanTakeover) return false;
+
+  // Tự reset sau 8 tiếng
+  const takeoverAt = new Date(session.humanTakeoverAt);
+  const hoursElapsed = (Date.now() - takeoverAt) / (1000 * 60 * 60);
+  if (hoursElapsed >= 8) {
+    setHumanTakeover(userId, false);
+    return false;
+  }
+  return true;
 }
 
 function update(userId, conv) {
@@ -45,4 +74,4 @@ function extractPhone(text) {
   return match ? match[0] : null;
 }
 
-module.exports = { get, update, extractPhone };
+module.exports = { get, update, extractPhone, setHumanTakeover, isHumanTakeover };
