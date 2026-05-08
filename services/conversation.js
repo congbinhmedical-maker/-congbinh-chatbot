@@ -50,10 +50,10 @@ function isHumanTakeover(userId) {
   const session = all[userId];
   if (!session || !session.humanTakeover) return false;
 
-  // Tự reset sau 8 tiếng
+  // Tự reset sau 15 phút không có người trực
   const takeoverAt = new Date(session.humanTakeoverAt);
-  const hoursElapsed = (Date.now() - takeoverAt) / (1000 * 60 * 60);
-  if (hoursElapsed >= 8) {
+  const minutesElapsed = (Date.now() - takeoverAt) / (1000 * 60);
+  if (minutesElapsed >= 15) {
     setHumanTakeover(userId, false);
     return false;
   }
