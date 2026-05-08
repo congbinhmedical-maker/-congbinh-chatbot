@@ -11,6 +11,12 @@ async function handleMessage(event) {
 
   console.log(`📨 Tin nhắn từ ${senderId}: ${text}`);
 
+  // Kiểm tra bot có đang bật không
+  if (process.env.BOT_ENABLED === 'false') {
+    console.log(`🔴 Bot đang TẮT — bỏ qua tin nhắn từ ${senderId}`);
+    return;
+  }
+
   // Nếu đang có người thật trực → bot không trả lời
   if (isHumanTakeover(senderId)) {
     console.log(`👤 Human takeover đang bật — bỏ qua tin nhắn từ ${senderId}`);

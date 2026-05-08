@@ -3,6 +3,10 @@ const { callOpenAI } = require('../services/openai');
 const conv = require('../services/conversation');
 
 async function handleComment(data) {
+  if (process.env.BOT_ENABLED === 'false') {
+    console.log(`🔴 Bot đang TẮT — bỏ qua comment`);
+    return;
+  }
   const { post_id, comment_id, sender_id, sender_name, message } = data;
 
   // Lấy họ tên đầy đủ và tên gọi thân mật
